@@ -1,7 +1,9 @@
 #!/bin/bash
  
-# Run all FastAPI services on different ports
+# install dependencies if any needed
+pip3 install -r requirements.txt
 
+# Run all FastAPI services on different ports
 # /api
 uvicorn api_gateway.main:app --reload --port 8000 &
 # /auth
