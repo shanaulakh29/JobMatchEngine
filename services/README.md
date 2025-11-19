@@ -1,10 +1,3 @@
-# API Quickstart
-
-Boot Up All Microservices (Run In Virtual Env!!)
-```bash
-./run_services.sh
-```
-
 # Docker Container Quickstart
 
 Start the full stack (build images and run containers):
@@ -39,7 +32,15 @@ docker exec -it my_redis sh
 redis-cli
 ```
 
-Helpful docker-compose commands:
+# API Quickstart
+
+Boot Up All Microservices (Run In Virtual Env!!)
+```bash
+./run_services.sh
+```
+
+
+## Helpful docker-compose commands:
 
 ```bash
 # Show running services

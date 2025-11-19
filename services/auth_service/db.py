@@ -22,6 +22,7 @@ pool = SimpleConnectionPool(
 
 # create users table for auth
 def init_db():
+ 
     db_execute("""
                 CREATE TABLE IF NOT EXISTS users (
                     id SERIAL PRIMARY KEY,
@@ -31,7 +32,8 @@ def init_db():
                     password_hash VARCHAR(100),
                     created_at TIMESTAMP NOT NULL
                 );          
-    """)
+    """, (None,))
+    print("Users table created")
 
 # run database queries (READ OPERATIONS ONLY)
 def db_query(query: str, params: tuple=()):

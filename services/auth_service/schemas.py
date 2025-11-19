@@ -1,4 +1,3 @@
-from uuid import UUID
 from pydantic import BaseModel, Field
 from typing import Optional
 
@@ -24,6 +23,7 @@ class UserOut(BaseModel):
     username: str
     email: str
     occupation: str
+    created_at: str
   
 
 class SystemUser(UserOut):

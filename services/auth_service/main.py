@@ -1,18 +1,27 @@
-from deps import get_current_user
-from db import init_db, db_execute, db_query
-from fastapi import FastAPI, status, HTTPException, Depends
-from fastapi.security import OAuth2PasswordRequestForm
-from fastapi.responses import JSONResponse
-from schemas import UserOut, UserAuth, TokenSchema
-from utils import (
+from auth_service.deps import get_current_user
+from auth_service.db import init_db, db_execute, db_query
+from auth_service.schemas import UserOut, UserAuth, TokenSchema
+from auth_service.utils import (
     get_hashed_password,
     create_access_token,
     create_refresh_token,
     verify_password
 )
+from contextlib import asynccontextmanager
+from datetime import datetime, timezone
+from fastapi import FastAPI, status, HTTPException, Depends
+from fastapi.security import OAuth2PasswordRequestForm
+from fastapi.responses import JSONResponse
 
 
-app = FastAPI()
+# on startup build tables
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    init_db();
+    yield
+
+app = FastAPI(lifespan=lifespan)
+
 
 
 
@@ -31,7 +40,7 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     user = db_query("SELECT username, password_hash FROM users u WHERE u.email = %s", (form_data.username,))
     
     # wrong email/password
-    if user is None:
+    if user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Incorrect email or password"
@@ -53,36 +62,42 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
 async def create_user(data: UserAuth):
     
     # query database to check if the user already exists
-    user = db_query("SELECT email FROM users u WHERE u.email = %s", (data.username,))
+    user = db_query("SELECT email FROM users u WHERE u.email = %s", (data.email,))
+ 
     
-    if user is not None:
+    if user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="User with this email already exists"
         )
+    dt = datetime.now(timezone.utc)
+    
     params = (
         data.email,
         get_hashed_password(data.password),
         data.username,
-        data.occupation
+        data.occupation,
+        dt
+        
     )
     
   
     # Store the user in database
-    db_execute("INSERT INTO users (email, password, username, occupation) VALUES (%s, %s, %s, %s)", params)
+    db_execute("INSERT INTO users (email, password_hash, username, occupation, created_at) VALUES (%s, %s, %s, %s, %s)", params)
     
-    # query for created user
-    response = db_query("SELECT * FROM users WHERE username = %s", (params[2],))
-    
-    json_filtered = {
-        "id": response[0]['id'],
-        "username": response[0]['username'],
-        "email": response[0]['email'],
-        "occupation": response[0]['occupation']
-    }
+    # query for created user (OPTIONAL)
+    # response = db_query("SELECT id, username, email, occupation FROM users WHERE username = %s", (params[2],))
+    # # row = response[0]
+    # # json_filtered = {
+    # #     "id": row['id'],
+    # #     "username": row['username'],
+    # #     "email": row['email'],
+    # #     "occupation": row['occupation'],
+    # #     "created_at": row['created_at']
+    # # }
     
     return JSONResponse(
-        content= json_filtered,
+        content= "User created successfully!",
         status_code=201
     )
 
@@ -91,6 +106,3 @@ async def create_user(data: UserAuth):
 async def get_user(user: UserOut = Depends(get_current_user)):
     return user
 
-# call init_db function (generate tables) on startup
-if __name__ == "__main__":
-    init_db()
