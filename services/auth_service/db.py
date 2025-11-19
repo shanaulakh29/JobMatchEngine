@@ -20,6 +20,19 @@ pool = SimpleConnectionPool(
     password=DB_PASSWORD
 )
 
+# create users table for auth
+def init_db():
+    db_execute("""
+                CREATE TABLE IF NOT EXISTS users (
+                    id SERIAL PRIMARY KEY,
+                    username VARCHAR (50) UNIQUE NOT NULL,
+                    occupation VARCHAR (50),
+                    email VARCHAR (100) UNIQUE NOT NULL,
+                    password_hash VARCHAR(100),
+                    created_at TIMESTAMP NOT NULL
+                );          
+    """)
+
 # run database queries (READ OPERATIONS ONLY)
 def db_query(query: str, params: tuple=()):
     """Runs SELECT queries only and returns results"""
@@ -45,6 +58,7 @@ def db_execute(query: str, params: tuple=()):
         cur.close()
     finally:
         pool.putconn(conn)
+
 
 
 

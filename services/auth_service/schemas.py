@@ -2,7 +2,7 @@ from uuid import UUID
 from pydantic import BaseModel, Field
 from typing import Optional
 
-# Pydantic model schemas for types
+# Pydantic model schemas for types and Service input/output
 
 class TokenSchema(BaseModel):
     access_token: str
@@ -14,12 +14,17 @@ class TokenPayLoad(BaseModel):
 
 # TODO: update this based on user table mentioned in doc
 class UserAuth(BaseModel):
+    username: str = Field(..., description="username")
+    occupation: Optional[str] 
     email: str = Field(..., description="user email")
     password: str = Field(..., min_length=5, max_length=24, description="user password")
 
 class UserOut(BaseModel):
-    id: UUID
+    id: str
+    username: str
     email: str
+    occupation: str
+  
 
 class SystemUser(UserOut):
     password: str
