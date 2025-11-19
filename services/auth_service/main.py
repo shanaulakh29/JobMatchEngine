@@ -1,7 +1,8 @@
+from deps import get_current_user
 from fastapi import FastAPI, status, HTTPException, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.responses import RedirectResponse
-from schemas import UserOut, UserAuth, TokenSchema               # TODO
+from schemas import UserOut, UserAuth, TokenSchema, User               # TODO
 from utils import (
     get_hashed_password,
     create_access_token,
@@ -67,4 +68,9 @@ async def create_user(data: UserAuth):
     
     # TODO
     # Store the user in database
+    return user
+
+# validate user
+@app.get('/auth/validate', summary='Get details of currently logged in user', response_model=UserOut)
+async def get_user(user: User = Depends(get_current_user)):
     return user
