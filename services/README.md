@@ -1,4 +1,11 @@
-# Services — Docker Quickstart
+# API Quickstart
+
+Boot Up All Microservices (Run In Virtual Env!!)
+```bash
+./run_services.sh
+```
+
+# Docker Container Quickstart
 
 Start the full stack (build images and run containers):
 
