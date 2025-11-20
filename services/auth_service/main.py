@@ -1,14 +1,14 @@
 from auth_service.deps import get_current_user
 from auth_service.db import init_db, db_execute, db_query
-from auth_service.schemas import UserOut, UserAuth, TokenSchema
+from auth_service.schemas import User, Token, UserAuth
 from auth_service.utils import (
+    ACCESS_TOKEN_EXPIRE_MINUTES,
     get_hashed_password,
     create_access_token,
-    create_refresh_token,
-    verify_password
 )
+from auth_service.deps import get_current_user, authenticate_user
 from contextlib import asynccontextmanager
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from fastapi import FastAPI, status, HTTPException, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.responses import JSONResponse
@@ -24,7 +24,6 @@ app = FastAPI(lifespan=lifespan)
 
 
 
-
 # status check
 @app.get('/', summary="Status check")
 async def root():
@@ -34,32 +33,35 @@ async def root():
 
 # user login
 # function uses OAuth2PasswordRequestForm as a dependency
-@app.post('/login', summary="Create access and refresh tokens for user", response_model=TokenSchema)
+# OAuth2PasswordRequestForm -> specifies that the data will be in form of username and password.
+@app.post('/login', summary="Create login access for user and return access token", response_model=Token)
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
-    # get user from database -> checks the user email
-    user = db_query("SELECT email, password_hash FROM users u WHERE u.email = %s", (form_data.username,))
-    # wrong email/password
+    
+    # authenticate the user
+    user = authenticate_user(form_data.username, form_data.password)
+    
+    
+    # raise exception is no user 
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Incorrect email or password"
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
         )
-        
-   
-    hashed_pass = user[0][1]
-    if not verify_password(form_data.password, hashed_pass):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Incorrect email or password"
-        )
-    return {
-        "access_token": create_access_token(user[0][0]),
-        "refresh_token": create_refresh_token(user[0][0])
-    }
+    
+    # expiration time
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    # create a access token for the user
+    access_token = create_access_token(data={"sub": user.username}, expires_delta=access_token_expires)
+    
+    # return the generated token
+    return {"access_token": access_token, "token_type": "bearer"}
+    
+
     
 
 # user signup
-@app.post('/signup', summary="Create new user", response_model=UserOut)
+@app.post('/signup', summary="Create new user")
 async def create_user(data: UserAuth):
     
     # query database to check if the user already exists
@@ -82,19 +84,16 @@ async def create_user(data: UserAuth):
     # Store the user in database
     db_execute("INSERT INTO users (email, password_hash, username, occupation, created_at) VALUES (%s, %s, %s, %s, %s)", params)
     
-
+    # TODO
+    # can optionall return user id as well if needed
     return JSONResponse(
         content= "User created successfully.",
         status_code=201
     )
-    
-    
-# @app.post('/auth/refresh', summary="Refresh the access token if expired", response_model=TokenSchema)
-# async def refresh_token(data:)
-    
 
+    
 # validate user
-@app.get('/auth/validate', summary='Get details of currently logged in user', response_model=UserOut)
-async def get_user(user: UserOut = Depends(get_current_user)):
-    return user
+@app.get('/validate', summary='Get details of currently logged in user', response_model=User)
+async def read_user(current_user: User = Depends(get_current_user)):
+   return current_user
 

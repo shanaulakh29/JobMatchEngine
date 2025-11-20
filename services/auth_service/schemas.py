@@ -1,29 +1,35 @@
 from pydantic import BaseModel, Field
 from typing import Optional
-from datetime import datetime
-from uuid import UUID
 
 # Pydantic model schemas for types and Service input/output
 
-class TokenSchema(BaseModel):
+class Token(BaseModel):
     access_token: str
-    refresh_token: str
+    token_type: str
 
-class TokenPayLoad(BaseModel):
-    sub: Optional[str] = None
+class TokenData(BaseModel):
+    username: Optional[str] = None
     exp: Optional[int] = None
 
-# TODO: update this based on user table mentioned in doc
-class UserAuth(BaseModel):
+
+# schema of user withotu password, to be returned
+class User(BaseModel):
+    id: int
     username: str = Field(..., description="username")
     occupation: Optional[str] 
     email: str = Field(..., description="user email")
-    password: str = Field(..., min_length=5, max_length=24, description="user password")
-
-class UserOut(BaseModel):
-    id: int
-    username: str
-    email: str
-    occupation: str
-    created_at: datetime
+    
+# user in database, including hashed password 
+class UserInDB(User):
+    password_hash: str
   
+    
+#  used when user is signing up first time
+class UserAuth(BaseModel):
+    id: int
+    username: str = Field(..., description="username")
+    password: str = Field(..., description="user password")
+    occupation: Optional[str] 
+    email: str = Field(..., description="user email")
+    
+
