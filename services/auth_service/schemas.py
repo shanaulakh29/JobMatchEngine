@@ -1,5 +1,7 @@
 from pydantic import BaseModel, Field
 from typing import Optional
+from datetime import datetime
+from uuid import UUID
 
 # Pydantic model schemas for types and Service input/output
 
@@ -19,12 +21,9 @@ class UserAuth(BaseModel):
     password: str = Field(..., min_length=5, max_length=24, description="user password")
 
 class UserOut(BaseModel):
-    id: str
+    id: int
     username: str
     email: str
     occupation: str
-    created_at: str
+    created_at: datetime
   
-
-class SystemUser(UserOut):
-    password: str

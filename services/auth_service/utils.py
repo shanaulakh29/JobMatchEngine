@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 from typing import Union, Any
 from jose import jwt
 
-load_dotenv()
+
 
 
 # JWT constants

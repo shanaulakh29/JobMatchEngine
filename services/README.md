@@ -16,7 +16,7 @@ Then run psql from inside the container (uses environment vars provided to the c
 
 ```bash
 psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"
-# or, if you prefer the postgres superuser
+# or, if you prefer the postgres superuser (OPTIONAL)
 psql -U postgres
 ```
 
