@@ -1,6 +1,9 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import JSONResponse
+import httpx
 import os
 from dotenv import load_dotenv
+from typing import Optional
 
 load_dotenv()
 
@@ -8,10 +11,10 @@ app = FastAPI(title="API Gateway", version="1.0.0")
 
 # microservices urls dictionary
 SERVICES: dict = {
-    "/auth": os.environ['AUTH_SERVICE'],
-    "/resume": os.environ['RESUME_SERVICE'],
-    "/match": os.environ['MATCH_SERVICE'],
-    "/job": os.environ['JOB_SERVICE']
+    "auth": os.environ['AUTH_SERVICE'],
+    "resume": os.environ['RESUME_SERVICE'],
+    "match": os.environ['MATCH_SERVICE'],
+    "job": os.environ['JOB_SERVICE']
 }
 
 @app.get("/")
@@ -19,60 +22,61 @@ async def root():
     """API GATEWAY INFORMATION"""
     return {"service": "API Gateway", "status": "Running OK", "available_routes": list(SERVICES.keys())}
 
-# TODO: Configure timeout settings
-# Create an httpx.Timeout object with:
-# - Overall timeout (e.g., 30 seconds)
-# - Connect timeout (e.g., 10 seconds)
-TIMEOUT = None  # Replace with httpx.Timeout(...)
+# # TODO: Configure timeout settings (OPTIONAL) -> Automatic timeout for response that take long time
+
+# # Create an httpx.Timeout object with:
+# # - Overall timeout (e.g., 30 seconds)
+# # - Connect timeout (e.g., 10 seconds)
+# TIMEOUT = None  # Replace with httpx.Timeout(...)
 
 
 async def forward_request(
     service_url: str,
-    path: str,
     method: str,
+    path: str,
     headers: dict,
-    body: Optional[bytes] = None,
-    params: dict = None
+    body = None,
+    params: Optional[dict] = None
 ):
     """
     This is the CORE function - forwards requests to microservices
-    
-    TODO: Implement the forwarding logic:
-    1. Create an async HTTP client using httpx.AsyncClient with timeout
-    2. Clean up headers (remove 'host' and 'content-length' to avoid conflicts)
-       - Hint: Use dict comprehension to filter out unwanted headers
-    3. Make the request to the target service:
-       - Use client.request() method
-       - Pass: method, url (service_url + path), headers, content (body), params
-    4. Return a Response object with:
-       - content from the microservice response
-       - status_code from the microservice response
-       - headers from the microservice response
-    5. Handle errors:
-       - httpx.ConnectError → raise HTTPException with 503 (Service Unavailable)
-       - httpx.TimeoutException → raise HTTPException with 504 (Gateway Timeout)
-       - General Exception → raise HTTPException with 500 (Internal Server Error)
     """
-    # Your implementation here
-    pass
+    async with httpx.AsyncClient() as client:
+        try:
+            # service ur;
+            url = f"{service_url}{path}"
+            # await thre response from service
+            response = await client.request(method, url, content=body, headers=headers, params=params)    
+        except httpx.ConnectError:
+            raise HTTPException(status_code=503, detail=f"Service unavailable: {service_url}")
+        except httpx.TimeoutException:
+            raise HTTPException(status_code=503, detail="Gateway timeout")
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+        return response
 
 
-# TODO: Create route handler for Auth Service
-# Use @app.api_route decorator with:
-# - Path: "/auth/{path:path}" (captures everything after /auth/)
-# - Methods: ["GET", "POST", "PUT", "DELETE", "PATCH"]
-# 
-# Inside the function:
-# 1. Extract request body if method is POST, PUT, or PATCH
-#    - Hint: await request.body() if request.method in [...]
-# 2. Call forward_request() with:
-#    - Service URL from SERVICES dict
-#    - The path parameter (add "/" prefix)
-#    - request.method
-#    - dict(request.headers)
-#    - body (if applicable)
-#    - dict(request.query_params)
-# 3. Return the result
+# Route handler for auth service
+@app.api_route("/{service}/{path:path}", methods=["GET", "POST"])
+async def auth_route(service: str, path: str, request: Request):
+    """Route requests to auth service"""
+    # check if service exists
+    if service not in SERVICES:
+        raise HTTPException(status_code=404, detail="Service not found")
+    # get the url for service
+    service_url = SERVICES[service]
+    # get any body if POST req
+    body = await request.body() if request.method in ["POST"] else None
+    # gather req headers
+    headers = dict(request.headers)
+    
+    # forwrd reqeust to microservice
+    response = await forward_request(service_url, request.method, f"/{path}", headers, body, dict(request._query_params))
+    
+    #  return the response
+    return JSONResponse(status_code=response.status_code, content=response.json())
+
+    
 
 
 # TODO: Create route handler for Job Service
@@ -99,12 +103,6 @@ async def forward_request(
 # 4. Return a JSON with gateway status and all services' health
 
 
-# TODO: Create a root endpoint
-# @app.get("/")
-# Return basic info about the gateway:
-# - Service name
-# - Version
-# - List of available routes/services
 
 
 
