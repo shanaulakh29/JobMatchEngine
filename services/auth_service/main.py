@@ -20,12 +20,12 @@ async def lifespan(app: FastAPI):
     init_db();
     yield
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(lifespan=lifespan, title="Auth Service")
 
 
 
 # status check
-@app.get('/', summary="Status check")
+@app.get('/health', summary="Status check")
 async def root():
     return {"description": "Auth service for JobMatchEngine", 
             "status": "Running OK"
