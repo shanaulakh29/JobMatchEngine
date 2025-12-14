@@ -17,10 +17,21 @@ SERVICES: dict = {
     "job": os.environ['JOB_SERVICE']
 }
 
+# health check endpoint (root)
 @app.get("/")
 async def root():
-    """API GATEWAY INFORMATION"""
-    return {"service": "API Gateway", "status": "Running OK", "available_routes": list(SERVICES.keys())}
+    """Returns a JSON with gateway status and all microservices health"""
+    services_health: dict = {}
+    # loop through SERVICES and check each one's health endpoints
+    for service, service_url in SERVICES.items():
+        async with httpx.AsyncClient() as client:
+            try:
+                response = await client.get(f"{service_url}/health", headers=None, params=None)
+                services_health[service] = "healthy"
+            except:
+                services_health[service] = "unhealthy"
+    
+    return {"Service": "API Gateway", "Status": "Running OK", "Services": services_health}
 
 # # TODO: Configure timeout settings (OPTIONAL) -> Automatic timeout for response that take long time
 
@@ -75,36 +86,3 @@ async def auth_route(service: str, path: str, request: Request):
     
     #  return the response
     return JSONResponse(status_code=response.status_code, content=response.json())
-
-    
-
-
-# TODO: Create route handler for Job Service
-# Same pattern as auth service but for "/jobs/{path:path}"
-
-
-# TODO: Create route handler for Resume Service  
-# Same pattern for "/resumes/{path:path}"
-
-
-# TODO: Create route handler for Match Service
-# Same pattern for "/match/{path:path}"
-
-
-# TODO: Create a health check endpoint
-# @app.get("/health")
-# This should:
-# 1. Create a dict to store health status of each service
-# 2. Loop through SERVICES and check each one's /health endpoint
-# 3. For each service:
-#    - Try to make a GET request to service_url/health
-#    - If successful (200), mark as "healthy"
-#    - If error, mark as "unhealthy" or "unreachable"
-# 4. Return a JSON with gateway status and all services' health
-
-
-
-
-
-
-

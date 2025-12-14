@@ -2,6 +2,9 @@ from fastapi import FastAPI
 
 app = FastAPI()
 
-@app.get("/")
+# status check
+@app.get('/health', summary="Status check")
 async def root():
-    return {"message": "This is the Match Service for JobMatchEngine"}
+    return {"description": "This is the Match Service for JobMatchEngine", 
+            "status": "Running OK"
+            }
