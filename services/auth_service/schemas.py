@@ -32,4 +32,8 @@ class UserAuth(BaseModel):
     occupation: Optional[str] 
     email: str = Field(..., description="user email")
     
-
+class UserSignup(BaseModel):
+    username: str
+    password: str
+    email: str
+    occupation: Optional[str] = None
