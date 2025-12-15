@@ -4,11 +4,12 @@ import httpx
 import os
 from dotenv import load_dotenv
 from typing import Optional
+from api_gateway.middlewares.authorize_middleware import authorize_middleware
 
 load_dotenv()
 
 app = FastAPI(title="API Gateway", version="1.0.0")
-
+app.middleware("http")(authorize_middleware)
 # microservices urls dictionary
 SERVICES: dict = {
     "auth": os.environ['AUTH_SERVICE'],
@@ -80,6 +81,9 @@ async def auth_route(service: str, path: str, request: Request):
     body = await request.body() if request.method in ["POST"] else None
     # gather req headers
     headers = dict(request.headers)
+
+    if hasattr(request.state, "user_id"):
+        headers["user_id"] = request.state.user_id
     
     # forwrd reqeust to microservice
     response = await forward_request(service_url, request.method, f"/{path}", headers, body, dict(request._query_params))

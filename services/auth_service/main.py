@@ -1,6 +1,6 @@
 from auth_service.deps import get_current_user
 from auth_service.db import init_db, db_execute, db_query
-from auth_service.schemas import User, Token, UserAuth
+from auth_service.schemas import User, Token, UserAuth, UserSignup
 from auth_service.utils import (
     ACCESS_TOKEN_EXPIRE_MINUTES,
     get_hashed_password,
@@ -52,7 +52,8 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     # expiration time
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     # create a access token for the user
-    access_token = create_access_token(data={"sub": user.username}, expires_delta=access_token_expires)
+    access_token = create_access_token(data={"sub": user.username,
+                                             "user_id": user.id}, expires_delta=access_token_expires)
     
     # return the generated token
     return {"access_token": access_token, "token_type": "bearer"}
@@ -62,7 +63,7 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
 
 # user signup
 @app.post('/signup', summary="Create new user")
-async def create_user(data: UserAuth):
+async def create_user(data: UserSignup):
     
     # query database to check if the user already exists
     user = db_query("SELECT email FROM users u WHERE u.email = %s", (data.email,))
