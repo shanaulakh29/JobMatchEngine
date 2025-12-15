@@ -69,7 +69,7 @@ async def forward_request(
 
 # Route handler for auth service
 @app.api_route("/{service}/{path:path}", methods=["GET", "POST"])
-async def auth_route(service: str, path: str, request: Request):
+async def req_route(service: str, path: str, request: Request):
     """Route requests to auth service"""
     # check if service exists
     if service not in SERVICES:

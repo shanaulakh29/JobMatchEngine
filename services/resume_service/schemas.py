@@ -1,0 +1,7 @@
+from pydantic import BaseModel, Field
+from typing import Optional
+
+# pydantic model schemas for types and service input/output
+
+class Resume(BaseModel):
+    

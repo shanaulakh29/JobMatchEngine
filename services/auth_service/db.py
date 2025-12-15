@@ -1,5 +1,8 @@
 import os
 from psycopg2.pool import SimpleConnectionPool
+from dotenv import load_dotenv
+
+load_dotenv()
 
 DB_HOST = os.environ['POSTGRES_HOST']
 DB_USER = os.environ['POSTGRES_USER']
@@ -33,7 +36,7 @@ def init_db():
                     created_at TIMESTAMP NOT NULL
                 );          
     """, (None,))
-    print("Users table created")
+    print("Users table created!")
 
 # run database queries (READ OPERATIONS ONLY)
 def db_query(query: str, params: tuple=()):
