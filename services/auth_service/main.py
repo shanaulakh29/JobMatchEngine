@@ -9,11 +9,10 @@ from auth_service.utils import (
 from auth_service.deps import get_current_user, authenticate_user
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone, timedelta
-from fastapi import FastAPI, status, HTTPException, Depends
+from fastapi import FastAPI, status, HTTPException, Depends, Request
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.responses import JSONResponse
-
-
+from auth_service.middlewares.login_middleware import login_middleware
 # on startup build tables
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -21,7 +20,7 @@ async def lifespan(app: FastAPI):
     yield
 
 app = FastAPI(lifespan=lifespan, title="Auth Service")
-
+app.middleware("http")(login_middleware)
 
 
 # status check
@@ -35,10 +34,12 @@ async def root():
 # function uses OAuth2PasswordRequestForm as a dependency
 # OAuth2PasswordRequestForm -> specifies that the data will be in form of username and password.
 @app.post('/login', summary="Create login access for user and return access token", response_model=Token)
-async def login(form_data: OAuth2PasswordRequestForm = Depends()):
-    
+async def login(request: Request):
+    form_data = getattr(request.state, "form_data", {})
     # authenticate the user
-    user = authenticate_user(form_data.username, form_data.password)
+    username = form_data.get("username")
+    password = form_data.get("password")
+    user = authenticate_user(username, password)
     
     
     # raise exception is no user 

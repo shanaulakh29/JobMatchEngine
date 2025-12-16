@@ -48,7 +48,9 @@ async def forward_request(
     path: str,
     headers: dict,
     body = None,
-    params: Optional[dict] = None
+    params: Optional[dict] = None,
+    json_body=None,
+    form_body=None
 ):
     """
     This is the CORE function - forwards requests to microservices
@@ -57,6 +59,7 @@ async def forward_request(
         try:
             # service ur;
             url = f"{service_url}{path}"
+
             # await thre response from service
             response = await client.request(method, url, content=body, headers=headers, params=params)    
         except httpx.ConnectError:
@@ -77,14 +80,16 @@ async def auth_route(service: str, path: str, request: Request):
         raise HTTPException(status_code=404, detail="Service not found")
     # get the url for service
     service_url = SERVICES[service]
-    # get any body if POST req
-    body = await request.body() if request.method in ["POST"] else None
+
     # gather req headers
     headers = dict(request.headers)
 
+    # get any body if POST req
+    body = await request.body() if request.method in ["POST"] else None
+  
     if hasattr(request.state, "user_id"):
-        headers["user_id"] = request.state.user_id
-    
+        headers["user_id"] = str(request.state.user_id)
+
     # forwrd reqeust to microservice
     response = await forward_request(service_url, request.method, f"/{path}", headers, body, dict(request._query_params))
     
