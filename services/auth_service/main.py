@@ -1,6 +1,6 @@
 from auth_service.deps import get_current_user
 from auth_service.db import init_db, db_execute, db_query
-from auth_service.schemas import User, Token, UserAuth, UserSignup
+from auth_service.schemas import User, Token, UserSignup
 from auth_service.utils import (
     ACCESS_TOKEN_EXPIRE_MINUTES,
     get_hashed_password,
@@ -10,7 +10,6 @@ from auth_service.deps import get_current_user, authenticate_user
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone, timedelta
 from fastapi import FastAPI, status, HTTPException, Depends, Request
-from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.responses import JSONResponse
 from auth_service.middlewares.login_middleware import login_middleware
 # on startup build tables
@@ -39,7 +38,7 @@ async def login(request: Request):
     # authenticate the user
     username = form_data.get("username")
     password = form_data.get("password")
-    user = authenticate_user(username, password)
+    user = authenticate_user(username, password) # type: ignore
     
     
     # raise exception is no user 

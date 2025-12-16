@@ -1,9 +1,10 @@
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, UploadFile, File, HTTPException, status
+from fastapi import FastAPI, UploadFile, File, HTTPException, status, Depends
 from fastapi.responses import JSONResponse
 from resume_service.db import init_db,  db_execute, db_query
 from resume_service.bucket import upload_s3, create_presigned_url
 import logging
+from resume_service.dependencies import get_user_id
 
 # build tables on startup
 @asynccontextmanager
@@ -30,7 +31,7 @@ async def root():
 
 # resume upload
 @app.post("/upload")
-async def upload_file(file: UploadFile = File(...)):
+async def upload_file(file: UploadFile = File(...), user_id: str = Depends(get_user_id)):
     
     # check if allowed content type
     if file.content_type not in ALLOWED_TYPES:
@@ -50,16 +51,17 @@ async def upload_file(file: UploadFile = File(...)):
     await file.seek(0)
     
     # upload to AWS S3
-    if not await upload_s3(file, file_name):
+    if not await upload_s3(file, file_name): # type: ignore
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
         detail="unable to upload file at this time")
     
     # generate a S3 url
-    s3_url = await create_presigned_url(file_name)
+    s3_url = await create_presigned_url(file_name)  # type: ignore
     logging.info("S3_URL: ", s3_url)
     
     
-    # TODO: upload to the resumes table with userID connected
+    # upload to the resumes table with userID connected
+    db_execute("INSERT INTO resumes ()")
     
     
     # TODO: push to redis queue
@@ -77,4 +79,4 @@ async def upload_file(file: UploadFile = File(...)):
 # TODO: get endpoints for a resume status
 @app.get("/{resume_id}/status", summary="Get the current status of a resume")
 async def resume_status():
-    
+    return 
