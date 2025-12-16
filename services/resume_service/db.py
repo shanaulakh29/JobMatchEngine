@@ -37,7 +37,7 @@ def init_db():
     """, (None,))
     print("Resumes table created!")
 
-# run database queries (READ OPERATIONS ONLY)
+
 def db_query(query: str, params: tuple=()):
     """Runs SELECT queries only and returns results"""
     conn = pool.getconn()
@@ -51,7 +51,7 @@ def db_query(query: str, params: tuple=()):
     finally:
         pool.putconn(conn)
 
-# run database write operations
+
 def db_execute(query: str, params: tuple=()):
     """Runs INSERT/UPDATE/DELETE queries and commits"""
     conn = pool.getconn()
