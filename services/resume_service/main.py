@@ -72,5 +72,9 @@ async def upload_file(file: UploadFile = File(...)):
     
     
 # TODO: get endpoints for resume id
+@app.get("/{resume_id}", summary="get all the information about a posted resume")
 
 # TODO: get endpoints for a resume status
+@app.get("/{resume_id}/status", summary="Get the current status of a resume")
+async def resume_status():
+    
