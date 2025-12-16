@@ -30,7 +30,7 @@ def init_db():
                 CREATE TABLE IF NOT EXISTS resumes (
                     id SERIAL PRIMARY KEY,
                     user_id INT REFERENCES users(id),
-                    s3_key VARCHAR(200),
+                    s3_key VARCHAR(200) NOT NULL,
                     status VARCHAR(100) DEFAULT 'uploaded',
                     uploaded_at TIMESTAMP NOT NULL
                 );           

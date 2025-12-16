@@ -12,9 +12,12 @@ from datetime import datetime, timezone, timedelta
 from fastapi import FastAPI, status, HTTPException, Depends, Request
 from fastapi.responses import JSONResponse
 from auth_service.middlewares.login_middleware import login_middleware
-# on startup build tables
+
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    """Builds tables on application startup"""
     init_db()
     yield
 
@@ -41,7 +44,7 @@ async def login(request: Request):
     user = authenticate_user(username, password) # type: ignore
     
     
-    # raise exception is no user 
+    # raise exception if no user 
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -85,8 +88,7 @@ async def create_user(data: UserSignup):
     # Store the user in database
     db_execute("INSERT INTO users (email, password_hash, username, occupation, created_at) VALUES (%s, %s, %s, %s, %s)", params)
     
-    # TODO
-    # can optionall return user id as well if needed
+    
     return JSONResponse(
         content= "User created successfully.",
         status_code=201

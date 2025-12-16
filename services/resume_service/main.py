@@ -1,10 +1,11 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, UploadFile, File, HTTPException, status, Depends
 from fastapi.responses import JSONResponse
-from resume_service.db import init_db,  db_execute, db_query
+from resume_service.db import init_db,  db_execute
 from resume_service.bucket import upload_s3, create_presigned_url
 import logging
-from resume_service.dependencies import get_user_id
+from resume_service.dependencies import get_user_id, get_resume_info, get_resume_status
+from datetime import datetime, timezone
 
 # build tables on startup
 @asynccontextmanager
@@ -59,12 +60,19 @@ async def upload_file(file: UploadFile = File(...), user_id: str = Depends(get_u
     s3_url = await create_presigned_url(file_name)  # type: ignore
     logging.info("S3_URL: ", s3_url)
     
+    dt = datetime.now(timezone.utc)
+    params=(
+        user_id,
+        s3_url,
+        dt
+    )
     
     # upload to the resumes table with userID connected
-    db_execute("INSERT INTO resumes ()")
+    db_execute("INSERT INTO resumes (user_id, s3_key, uploaded_at) VALUES(%s, %s, %s)", params)
     
     
     # TODO: push to redis queue
+    
      
     # successful upload
     return JSONResponse(
@@ -73,10 +81,13 @@ async def upload_file(file: UploadFile = File(...), user_id: str = Depends(get_u
     )
     
     
-# TODO: get endpoints for resume id
-@app.get("/{resume_id}", summary="get all the information about a posted resume")
 
-# TODO: get endpoints for a resume status
+@app.get("/{resume_id}", summary="get all the information about a posted resume")
+async def get_resume(resume_id: str, user_id: str = Depends(get_user_id)):
+    return get_resume_info(resume_id, user_id)
+    
+    
+
 @app.get("/{resume_id}/status", summary="Get the current status of a resume")
-async def resume_status():
-    return 
+async def resume_status(resume_id: str, user_id: str = Depends(get_user_id)):
+    return get_resume_status(resume_id, user_id)

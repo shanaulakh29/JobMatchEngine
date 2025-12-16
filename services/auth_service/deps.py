@@ -26,8 +26,9 @@ def get_user(username: str) -> UserInDB:
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Could not find user",
     )
+    user_id, username, email, occupation, password_hash = user
         
-    return UserInDB(id=user[0][0], username=user[0][1], email=user[0][2], occupation=user[0][3], password_hash=user[0][4])
+    return UserInDB(id=user_id, username=username, email=email, occupation=occupation, password_hash=password_hash)
 
 # function to authenticate user
 def authenticate_user(username: str, password: str) -> UserInDB:
