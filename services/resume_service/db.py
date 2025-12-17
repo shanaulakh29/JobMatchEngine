@@ -1,5 +1,8 @@
 import os
 from psycopg2.pool import SimpleConnectionPool
+from dotenv import load_dotenv
+
+load_dotenv()
 
 DB_HOST = os.environ['POSTGRES_HOST']
 DB_USER = os.environ['POSTGRES_USER']
@@ -20,7 +23,21 @@ pool = SimpleConnectionPool(
     password=DB_PASSWORD
 )
 
-# run database queries (READ OPERATIONS ONLY)
+# create resume table
+#  Status options: uploaded/parsing/parsed/matched
+def init_db():
+    db_execute("""
+                CREATE TABLE IF NOT EXISTS resumes (
+                    id SERIAL PRIMARY KEY,
+                    user_id INT REFERENCES users(id),
+                    s3_key VARCHAR(200) NOT NULL,
+                    status VARCHAR(100) DEFAULT 'uploaded',
+                    uploaded_at TIMESTAMP NOT NULL
+                );           
+    """, (None,))
+    print("Resumes table created!")
+
+
 def db_query(query: str, params: tuple=()):
     """Runs SELECT queries only and returns results"""
     conn = pool.getconn()
@@ -34,7 +51,7 @@ def db_query(query: str, params: tuple=()):
     finally:
         pool.putconn(conn)
 
-# run database write operations
+
 def db_execute(query: str, params: tuple=()):
     """Runs INSERT/UPDATE/DELETE queries and commits"""
     conn = pool.getconn()

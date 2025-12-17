@@ -71,10 +71,10 @@ async def forward_request(
         return response
 
 
-# Route handler for auth service
+# Route handler for a service request
 @app.api_route("/{service}/{path:path}", methods=["GET", "POST"])
-async def auth_route(service: str, path: str, request: Request):
-    """Route requests to auth service"""
+async def req_route(service: str, path: str, request: Request):
+    """Route requests to proper service"""
     # check if service exists
     if service not in SERVICES:
         raise HTTPException(status_code=404, detail="Service not found")
@@ -92,6 +92,6 @@ async def auth_route(service: str, path: str, request: Request):
 
     # forwrd reqeust to microservice
     response = await forward_request(service_url, request.method, f"/{path}", headers, body, dict(request._query_params))
-    
+
     #  return the response
     return JSONResponse(status_code=response.status_code, content=response.json())
