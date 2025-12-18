@@ -4,7 +4,7 @@ import httpx
 import os
 from dotenv import load_dotenv
 from typing import Optional
-from api_gateway.middlewares.authorize_middleware import authorize_middleware
+from services.api_gateway.authorize_middleware import authorize_middleware
 
 load_dotenv()
 

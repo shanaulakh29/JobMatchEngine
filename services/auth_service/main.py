@@ -11,7 +11,7 @@ from contextlib import asynccontextmanager
 from datetime import datetime, timezone, timedelta
 from fastapi import FastAPI, status, HTTPException, Depends, Request
 from fastapi.responses import JSONResponse
-from auth_service.middlewares.login_middleware import login_middleware
+from services.auth_service.login_middleware import login_middleware
 
 
 
