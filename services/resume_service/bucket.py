@@ -38,13 +38,15 @@ async def create_presigned_url(file_name: str, expiration=86400):
     :return: Presigned URL as a string. If error, returns None
     
     """
+    key = f"resumes/{file_name}"
     # Generate the URL
     s3_client = boto3.client('s3', region_name='ap-south-1')
     try:
         response = s3_client.generate_presigned_url(
             'get_object',
-            Params={'Bucket': BUCKET_NAME, 'Key': file_name},
-            ExpiresIn=expiration,      
+            Params={'Bucket': BUCKET_NAME, 'Key': key},
+            ExpiresIn=expiration,
+                  
         )
     
     except ClientError as e:
