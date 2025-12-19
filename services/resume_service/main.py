@@ -40,7 +40,7 @@ async def upload_file(file: UploadFile = File(...), user_id: str = Depends(get_u
     
     contents = await file.read()
     file_size = len(contents)
-    
+        
     # check if < 5MM
     file_size_mb = file_size / (1024 *1024) # type: ignore
     if file_size_mb > MAX_FILE_SIZE_MB:

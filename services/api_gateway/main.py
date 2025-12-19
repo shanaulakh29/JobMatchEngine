@@ -4,7 +4,8 @@ import httpx
 import os
 from dotenv import load_dotenv
 from typing import Optional
-from services.api_gateway.authorize_middleware import authorize_middleware
+from api_gateway.authorize_middleware import authorize_middleware
+from starlette.responses import Response as StarletteResponse
 
 load_dotenv()
 
@@ -94,4 +95,4 @@ async def req_route(service: str, path: str, request: Request):
     response = await forward_request(service_url, request.method, f"/{path}", headers, body, dict(request._query_params))
 
     #  return the response
-    return JSONResponse(status_code=response.status_code, content=response.json())
+    return StarletteResponse(content=response.content, status_code=response.status_code, headers=dict(response.headers), media_type=response.headers.get("content-type"))

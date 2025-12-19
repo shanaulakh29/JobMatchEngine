@@ -17,24 +17,29 @@ PUBLIC_PATHS = {
 }
 
 async def authorize_middleware(request: Request, call_next):
+    """Middleware for API Gateway.
+    
+    Purpose: Verifies incoming requests before they reach the consequent microservice
+    
+    """
     path = request.url.path
 
     # Skip auth for public routes
     if path=="/" or path.endswith(("/login", "/signup", "/health")):
         return await call_next(request)
 
-    auth_header = request.headers.get("Authorization")
-    if not auth_header or not auth_header.startswith("Bearer "):
+    token = request.cookies.get("access_token")
+    
+    if not token:
         raise HTTPException(status_code=401, detail="Missing or invalid token")
 
-    token = auth_header.split(" ")[1]
-
+    # verify token
     try:
         payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[ALGORITHM])
         user_id = payload.get("user_id")
 
         if not user_id:
-            raise HTTPException(status_code=401, detail="Invalid token")
+            raise HTTPException(status_code=401, detail="Invalid token payload")
 
         # attach user_id to request state
         request.state.user_id = user_id
