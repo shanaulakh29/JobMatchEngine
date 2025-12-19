@@ -3,7 +3,7 @@ from resume_service.schemas import Resume
 from resume_service.db import db_query
 from typing import Optional
 
-def get_user_id(user_id: str = Header(...)) -> str:
+def get_user_id(user_id: str = Header(..., alias="user_id")) -> str:
     """Extracts the user_ID from header. Used as a dependency"""
     if not user_id:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User ID required")

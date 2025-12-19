@@ -73,6 +73,8 @@ async def upload_file(file: UploadFile = File(...), user_id: str = Depends(get_u
     
     # TODO: push to redis queue
     
+    # TODO: PARSE THE RESUME
+    
      
     # successful upload
     return JSONResponse(
