@@ -19,14 +19,14 @@ oauth2_scheme = OAuth2PasswordBearer (
 # function to get a user
 def get_user(username: str) -> UserInDB:
     # get the user
-    user = db_query("SELECT id, username, email, occupation, password_hash FROM users u WHERE u.username = %s", (username,))
+    rows = db_query("SELECT id, username, email, occupation, password_hash FROM users u WHERE u.username = %s", (username,))
 
-    if not user:
+    if not rows:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Could not find user",
     )
-    user_id, username, email, occupation, password_hash = user
+    user_id, username, email, occupation, password_hash = rows[0]
         
     return UserInDB(id=user_id, username=username, email=email, occupation=occupation, password_hash=password_hash)
 
