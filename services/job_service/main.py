@@ -1,5 +1,5 @@
-from fastapi import FastAPI
-
+from fastapi import FastAPI, HTTPException, Query
+import httpx
 app = FastAPI()
 
 
@@ -11,38 +11,45 @@ async def root():
             }
 
 @app.get('/jobs', summary="Get All Jobs")
-async def getAllJobs():
-    return {
-        "jobs": [
-            {
-                "id": 1,
-                "title": "Backend Developer",
-                "company": "TechNova",
-                "location": "Vancouver, BC",
-                "type": "Full-time",
-                "salary": "90,000 - 110,000 CAD",
-                "posted_at": "2025-12-01",
-                "description": "Build and maintain REST APIs using FastAPI and PostgreSQL."
-            },
-            {
-                "id": 2,
-                "title": "Frontend Developer",
-                "company": "PixelWorks",
-                "location": "Remote",
-                "type": "Contract",
-                "salary": "60 - 80 CAD/hour",
-                "posted_at": "2025-12-05",
-                "description": "Develop responsive UI using React and Tailwind CSS."
-            },
-            {
-                "id": 3,
-                "title": "DevOps Engineer",
-                "company": "CloudBridge",
-                "location": "Toronto, ON",
-                "type": "Full-time",
-                "salary": "100,000 - 130,000 CAD",
-                "posted_at": "2025-12-10",
-                "description": "Manage Dockerized services and CI/CD pipelines."
-            }
-        ]
+async def getAllJobs(
+    query: str = Query("jobs", description="Search query for jobs"),
+    country: str = Query("us", description="Country code e.g: US"),
+    page: int = Query(1, ge=1, le=50, description="Page number between 1 and 50"),
+    num_pages: int = Query(1, description="Number of pages"),
+    date_posted: str = Query("all", description="Date filter, e.g., 'all', 'last_7_days'")):
+
+    
+    # return "hello jobs"
+    url = "https://jsearch.p.rapidapi.com/search"
+
+    headers = {
+        "x-rapidapi-host": "jsearch.p.rapidapi.com",
+        "x-rapidapi-key": "1ea8bf0864msh9bd4e7028fda701p145d9bjsn11da6cb6fb22"
     }
+    # in params we can add the functionality of num_pages, country, page
+    params = {
+        "query": query,
+        "page": page,
+        "num_pages": num_pages,
+        "country": country,
+        "date_posted": date_posted
+    }
+    
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(url, headers=headers, params=params)
+
+        if response.status_code != 200:
+            raise HTTPException(
+                status_code=response.status_code,
+                detail=response.text
+            )
+
+        return response.json()
+
+    except httpx.RequestError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+
+
+        
