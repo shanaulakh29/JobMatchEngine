@@ -1,2 +1,6 @@
 celery[redis]
 psycopg2-binary
+boto3
+python-dotenv
+pdfplumber
+python-docx

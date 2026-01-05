@@ -8,3 +8,7 @@ psycopg2-binary
 python-multipart
 httpx
 boto3
+celery
+redis
+pdfplumber
+python-docx

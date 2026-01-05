@@ -6,7 +6,7 @@ from resume_service.bucket import upload_s3, create_presigned_url
 import logging
 from resume_service.dependencies import get_user_id, get_resume_info, get_resume_status
 from datetime import datetime, timezone
-
+from worker.celery_app import parse_resume
 # build tables on startup
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -72,7 +72,7 @@ async def upload_file(file: UploadFile = File(...), user_id: str = Depends(get_u
     
     
     # TODO: push to redis queue
-    
+    parse_resume.delay(s3_url, user_id)
     # TODO: PARSE THE RESUME
     
      
