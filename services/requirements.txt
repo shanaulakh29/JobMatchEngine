@@ -10,3 +10,5 @@ httpx
 boto3
 celery
 redis
+pdfplumber
+python-docx
