@@ -1,5 +1,9 @@
 from fastapi import FastAPI, HTTPException, Query
+from dotenv import load_dotenv
 import httpx
+import os
+load_dotenv()
+
 app = FastAPI()
 
 
@@ -24,7 +28,7 @@ async def getAllJobs(
 
     headers = {
         "x-rapidapi-host": "jsearch.p.rapidapi.com",
-        "x-rapidapi-key": "1ea8bf0864msh9bd4e7028fda701p145d9bjsn11da6cb6fb22"
+        "x-rapidapi-key": os.environ["JSEARCH_API_KEY"]
     }
     # in params we can add the functionality of num_pages, country, page
     params = {
