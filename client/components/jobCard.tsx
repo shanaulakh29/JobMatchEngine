@@ -1,9 +1,9 @@
 "use client"
 import { useRouter } from "next/navigation";
 export default function JobCard({job}){
-    const rounter=useRouter();
+    const router=useRouter();
     function handleClick(){
-
+        router.push("")
     }
     return (
        <div
