@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 export default function JobCard({job}){
     const router=useRouter();
     function handleClick(){
-        router.push("")
+        router.push(`/jobdetail/${job.job_id}`)
     }
     return (
        <div

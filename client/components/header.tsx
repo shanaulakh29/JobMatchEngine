@@ -9,7 +9,7 @@ export default function Header(){
     }
     return (
 <header className="w-full">
-      <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-4 md:py-5">
+      <div className="  flex items-center justify-between  py-4 md:py-5">
         {/* Left section */}
         <div className="flex items-center gap-6 md:gap-10">
           {/* Logo */}
@@ -29,7 +29,7 @@ export default function Header(){
           </Link>
 
           {/* Navigation */}
-          <ul className="hidden md:flex items-center gap-8 text-sm md:text-lg font-medium text-gray-600">
+          <ul className="flex items-center gap-8 text-sm md:text-lg font-medium text-gray-600">
             <li className="cursor-pointer hover:text-indigo-600 transition-colors duration-200">
               <Link href="/home">Home</Link>
             </li>
@@ -43,7 +43,7 @@ export default function Header(){
         <div className="flex items-center gap-4">
           <button
             onClick={handleLogout}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-2 rounded-2xl shadow-md transition-all duration-200"
+            className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-2 py-1 md:px-4 md:py-2 rounded-2xl shadow-md transition-all duration-200"
           >
             Logout
           </button>
