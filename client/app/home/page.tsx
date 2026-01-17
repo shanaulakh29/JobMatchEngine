@@ -1,9 +1,7 @@
-import Image from "next/image";
 import Header from "../../components/header"
 import AllResumes from "../../components/allResumes"
 import Search from "../../components/search"
 import Jobs from "../../components/jobs"
-import Login from "../../components/login"
 export default function Home() {
   return (
     <div className="px-6">
@@ -22,7 +20,5 @@ export default function Home() {
 
       <Jobs/>
       </div>
-
-
   );
 }

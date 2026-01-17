@@ -1,12 +1,7 @@
-'use client'
-import { useRouter } from "next/navigation";
 import Link from "next/link";
+import LogoutButton from "./logoutButton";
 import Image from "next/image";
 export default function Header(){
-    const router=useRouter()
-    function handleLogout(){
-        router.push("/")
-    }
     return (
 <header className="w-full">
       <div className="  flex items-center justify-between  py-4 md:py-5">
@@ -40,14 +35,7 @@ export default function Header(){
         </div>
 
         {/* Right section */}
-        <div className="flex items-center gap-4">
-          <button
-            onClick={handleLogout}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-2 py-1 md:px-4 md:py-2 rounded-2xl shadow-md transition-all duration-200"
-          >
-            Logout
-          </button>
-        </div>
+        <LogoutButton/>
       </div>
     </header>
   );
