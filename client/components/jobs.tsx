@@ -1,4 +1,5 @@
 import {cookies} from "next/headers"
+import { redirect } from "next/navigation";
 import JobCard from "./jobCard";
 export default async function Jobs(){
     const cookieStore= await cookies()
@@ -12,13 +13,17 @@ export default async function Jobs(){
             Cookie:cookieHeader
         }
     })
-    if (!res.ok) {
+    console.log("STATUS IS ",res.status)
+    if(res.status===401){
+        redirect("/login")
+    }
+    else if (!res.ok) {
         const text = await res.text();
         throw new Error(`Failed to fetch jobs: ${text}`);
-}
+    }
 
-const result = await res.json();
-const jobs=result.data
+    const result = await res.json();
+    const jobs=result.data
 
 
     return(
