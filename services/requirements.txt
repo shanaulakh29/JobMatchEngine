@@ -12,3 +12,4 @@ celery
 redis
 pdfplumber
 python-docx
+sentence-transformers

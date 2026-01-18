@@ -4,3 +4,4 @@ boto3
 python-dotenv
 pdfplumber
 python-docx
+sentence-transformers
