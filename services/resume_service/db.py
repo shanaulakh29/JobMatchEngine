@@ -36,14 +36,18 @@ def init_db():
                 );           
     """, (None,))
     print("resumes table created!")
+    # pgvector extension
+    # db_execute("""CREATE EXTENSION IF NOT EXISTS vector;""", (None,))
+    # print("pg vector extension created")
     # create parsed_resumes tables
-    db_execute("""CREATE (
+    db_execute("""CREATE TABLE IF NOT EXISTS parsed_resumes (
                     id SERIAL PRIMARY KEY,
                     resume_id INT REFERENCES resumes(id),
                     skills TEXT[],
                     experience JSONB,
                     education TEXT[],
                     raw_text VARCHAR(500),
+                    embedding VECTOR(384)
                     parsed_at TIMESTAMP NOT NULL
         );""", (None,))
     print("parsed_resumes table created")
