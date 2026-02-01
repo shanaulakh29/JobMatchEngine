@@ -12,3 +12,5 @@ celery
 redis
 pdfplumber
 python-docx
+transformers
+torch

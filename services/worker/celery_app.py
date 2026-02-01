@@ -10,6 +10,14 @@ import pdfplumber
 from docx import Document
 load_dotenv()
 
+# ner.py
+from transformers import AutoTokenizer, AutoModelForTokenClassification
+import torch
+model_name = "yashpwr/resume-ner-bert-v2"
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+model = AutoModelForTokenClassification.from_pretrained(model_name)
+
+
 celery=Celery(
     "worker",
     broker=os.getenv("CELERY_BROKER_URL"),
@@ -49,6 +57,47 @@ def bytes_to_text(file_bytes: bytes, filename: str) -> str:
 
     else:
         raise ValueError("Unsupported file type")
+    
+def extract_entities(text: str):
+    inputs = tokenizer(
+        text,
+        return_tensors="pt",
+        truncation=True,
+        max_length=128,
+        padding=True
+    )
+
+    with torch.no_grad():
+        outputs = model(**inputs)
+        predictions = torch.argmax(outputs.logits, dim=2)
+
+    entities = []
+    current_entity = None
+
+    for i, pred in enumerate(predictions[0]):
+        label = model.config.id2label[pred.item()]
+        token = tokenizer.convert_ids_to_tokens(inputs['input_ids'][0][i])
+        
+        if label.startswith('B-'):
+            if current_entity:
+                entities.append(current_entity)
+            current_entity = {
+                'text': token,
+                'label': label[2:],
+                'start': i
+            }
+        elif label.startswith('I-') and current_entity:
+            current_entity['text'] += ' ' + token
+        elif label == 'O':
+            if current_entity:
+                entities.append(current_entity)
+                current_entity = None
+
+    if current_entity:
+        entities.append(current_entity)
+
+    return entities
+
 
 @celery.task
 def parse_resume(s3_url:str, user_id:str):
@@ -80,6 +129,14 @@ def parse_resume(s3_url:str, user_id:str):
         # PDF bytes
         file_bytes = response["Body"].read()
         text = bytes_to_text(file_bytes, filename)
+        print("RESUME TEXT IS: \n")
+        print(text)
+
+        # Run NER on the actual resume text
+        entities = extract_entities(text)
+        print("Extracted Entities:")
+        for entity in entities:
+            print(f"- {entity['label']}: {entity['text']}")
 
         print(f"Downloaded {len(file_bytes)} bytes from S3")
 
@@ -95,3 +152,4 @@ def parse_resume(s3_url:str, user_id:str):
 # celery.conf.task_routes = {
 #     "worker.celery_app.parse_resume": {"queue": "resume_queue"},
 # }
+

@@ -1,4 +1,5 @@
 from fastapi import Request, HTTPException
+from fastapi.responses import JSONResponse
 from jose import jwt, JWTError
 from dotenv import load_dotenv
 import os
@@ -31,7 +32,11 @@ async def authorize_middleware(request: Request, call_next):
     token = request.cookies.get("access_token")
     
     if not token:
-        raise HTTPException(status_code=401, detail="Missing or invalid token")
+        # raise HTTPException(status_code=401, detail="Missing or invalid token")
+        return JSONResponse(
+            status_code=401,
+            content={"message": "Missing or invalid token"}
+        )
 
     # verify token
     try:

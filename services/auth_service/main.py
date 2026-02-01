@@ -5,14 +5,20 @@ from auth_service.utils import (
     ACCESS_TOKEN_EXPIRE_MINUTES,
     get_hashed_password,
     create_access_token,
+        ALGORITHM,
+    JWT_SECRET_KEY,
+    verify_password
 )
+
 from auth_service.deps import get_current_user, authenticate_user
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone, timedelta
-from fastapi import FastAPI, status, HTTPException, Depends, Response, Form
+from fastapi import FastAPI, status, HTTPException, Depends, Response, Form, Cookie
 from fastapi.responses import JSONResponse
-
-
+from typing import Optional
+from jose import jwt, JWTError
+from auth_service.schemas import TokenData
+from auth_service.deps import get_user
 
 
 
@@ -105,7 +111,40 @@ async def create_user(username: str = Form(...), password: str = Form(...), emai
         status_code=201
     )
 
+@app.post("/logout")
+def logout():
+    response = JSONResponse(content={"messsage": "Logged out successfully"})
+    response.delete_cookie(
+        key="access_token",
+        httponly=True,
+        samesite="lax",
+        secure=False, #true in production
+        path="/",
+        domain=None,
+    )
+    return response
+
+@app.post("/validate-token")
+def validateToken(access_token: Optional[str] = Cookie(None)):
+    credential_exception = HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Could not validate credentials")
+    try:
+        payload = jwt.decode(access_token, JWT_SECRET_KEY, algorithms=[ALGORITHM])
+        username = payload.get("sub")
+        if username is None:
+            raise credential_exception
+        
+        token_data = TokenData(username=username)
+    except JWTError:
+        raise credential_exception
     
+    user = get_user(username=token_data.username) # type: ignore
+    #  check if user exists in database
+    if user is None:
+        raise credential_exception
+
+    return JSONResponse(content={"message": "Token is valid", "user": {"id": user.id, "username": user.username, "email": user.email}})
+
+
 # validate user
 @app.get('/validate', summary='Get details of currently logged in user', response_model=User)
 async def read_user(current_user: User = Depends(get_current_user)):

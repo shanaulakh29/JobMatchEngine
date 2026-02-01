@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import httpx
 import os
@@ -8,8 +9,17 @@ from api_gateway.authorize_middleware import authorize_middleware
 from starlette.responses import Response as StarletteResponse
 
 load_dotenv()
-
+origins = [
+    "http://localhost:3000", 
+]
 app = FastAPI(title="API Gateway", version="1.0.0")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,      
+    allow_credentials=True,   
+    allow_methods=["*"],       
+    allow_headers=["*"],       
+)
 app.middleware("http")(authorize_middleware)
 # microservices urls dictionary
 SERVICES: dict = {

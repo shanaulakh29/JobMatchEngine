@@ -4,3 +4,5 @@ boto3
 python-dotenv
 pdfplumber
 python-docx
+transformers
+torch
