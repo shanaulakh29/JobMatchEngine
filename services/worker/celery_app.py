@@ -8,6 +8,9 @@ from io import BytesIO
 from urllib.parse import urlparse
 import pdfplumber
 from docx import Document
+
+
+
 load_dotenv()
 
 # ner.py
