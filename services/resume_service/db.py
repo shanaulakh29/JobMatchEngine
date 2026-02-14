@@ -47,7 +47,7 @@ def init_db():
                     experience JSONB,
                     education TEXT[],
                     raw_text VARCHAR(500),
-                    embedding VECTOR(384)
+                    embedding VECTOR(384),
                     parsed_at TIMESTAMP NOT NULL
         );""", (None,))
     print("parsed_resumes table created")

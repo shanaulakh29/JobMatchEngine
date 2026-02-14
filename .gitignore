@@ -3,3 +3,4 @@ venv
 /services/*/__pycache__
 /services/api_gateway/middlewares/__pycache__
 /services/.env
+/services/worker/test.pdf
