@@ -29,7 +29,7 @@ services:
     image: pgvector/pgvector:pg16
     container_name: pgvector
     ports:
-      - "${PGVECTOR_PORT}:${PGVECTOR_PORT}"
+      - "${PGVECTOR_PORT}:${POSTGRES_PORT}"
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}

@@ -20,6 +20,14 @@ psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"
 psql -U postgres
 ```
 
+Acessing pg-vector
+```bash
+docker exec -it pgvector bash
+psql -U $POSTGRES_USER -d $POSTGRES_DB
+```
+
+
+
 If you don't know the values of `POSTGRES_USER` or `POSTGRES_DB`, check your compose file or the `.env` file used by `docker compose`:
 
 Accessing Redis
