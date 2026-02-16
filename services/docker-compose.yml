@@ -2,7 +2,7 @@ version: "3.9"
 
 services:
   postgres:
-    image: postgres:16
+    image: pgvector/pgvector:pg16
     container_name: my_postgres
     restart: unless-stopped
     environment:
@@ -14,7 +14,18 @@ services:
       - "${POSTGRES_PORT}:${POSTGRES_PORT}"
     volumes:
       - pgdata:/var/lib/postgresql/data
-    
+  
+  # pgadmin tool for postgres
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin4
+    ports:
+      - "${PGADMIN_PORT}:${PGADMIN_PORT_CONTAINER}"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+
+
   redis:
     image: redis:7
     container_name: my_redis
@@ -48,6 +59,8 @@ services:
     depends_on:
       - redis
       - postgres
+   
+
       
 volumes:
   pgdata:

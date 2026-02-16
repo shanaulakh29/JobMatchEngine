@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query,Path
 from dotenv import load_dotenv
 import httpx
 import os
@@ -54,6 +54,36 @@ async def getAllJobs(
     except httpx.RequestError as e:
         raise HTTPException(status_code=500, detail=str(e))
     
+@app.get("/{job_id}", summary="Get Job Details by ID")
+async def getJobDetail(job_id: str = Path(..., description="ID of the job to fetch")):
+    url = "https://jsearch.p.rapidapi.com/job-details"
+
+    headers = {
+        "x-rapidapi-host": "jsearch.p.rapidapi.com",
+        "x-rapidapi-key": os.environ["JSEARCH_API_KEY"],
+    }
+
+    params = {
+        "job_id": job_id
+    }
+
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(url, headers=headers, params=params)
+
+        if response.status_code != 200:
+            raise HTTPException(
+                status_code=response.status_code,
+                detail=response.text
+            )
+
+        return response.json()
+
+    except httpx.RequestError as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
-        
+# @app.get("/applied-jobs")
+# async def appliedJobs():
+
+#     return ""
