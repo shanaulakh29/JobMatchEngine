@@ -1,24 +1,15 @@
-import logging
 import os
 from celery import Celery
 import boto3
 from dotenv import load_dotenv
 from botocore.exceptions import ClientError
-from io import BytesIO
 from urllib.parse import urlparse
-import pdfplumber
-from docx import Document
+from worker.model_parser import parse_resume_raw
+from worker.model_dependencies import bytes_to_text
 
 
 
 load_dotenv()
-
-# ner.py
-from transformers import AutoTokenizer, AutoModelForTokenClassification
-import torch
-model_name = "yashpwr/resume-ner-bert-v2"
-tokenizer = AutoTokenizer.from_pretrained(model_name)
-model = AutoModelForTokenClassification.from_pretrained(model_name)
 
 
 celery=Celery(
@@ -30,76 +21,6 @@ celery=Celery(
 @celery.task
 def test_task():
     return "Celery worker OK!"
-
-def bytes_to_text(file_bytes: bytes, filename: str) -> str:
-    """
-    Convert file bytes to plain text.
-    Supports PDF, DOCX, TXT.
-    """
-
-    filename = filename.lower()
-
-    # -------- PDF --------
-    if filename.endswith(".pdf"):
-        text_pages = []
-        with pdfplumber.open(BytesIO(file_bytes)) as pdf:
-            for page in pdf.pages:
-                page_text = page.extract_text()
-                if page_text:
-                    text_pages.append(page_text)
-        return "\n".join(text_pages)
-
-    # -------- DOCX --------
-    elif filename.endswith(".docx"):
-        doc = Document(BytesIO(file_bytes))
-        return "\n".join(p.text for p in doc.paragraphs if p.text.strip())
-
-    # -------- TXT --------
-    elif filename.endswith(".txt"):
-        return file_bytes.decode("utf-8", errors="ignore")
-
-    else:
-        raise ValueError("Unsupported file type")
-    
-def extract_entities(text: str):
-    inputs = tokenizer(
-        text,
-        return_tensors="pt",
-        truncation=True,
-        max_length=128,
-        padding=True
-    )
-
-    with torch.no_grad():
-        outputs = model(**inputs)
-        predictions = torch.argmax(outputs.logits, dim=2)
-
-    entities = []
-    current_entity = None
-
-    for i, pred in enumerate(predictions[0]):
-        label = model.config.id2label[pred.item()]
-        token = tokenizer.convert_ids_to_tokens(inputs['input_ids'][0][i])
-        
-        if label.startswith('B-'):
-            if current_entity:
-                entities.append(current_entity)
-            current_entity = {
-                'text': token,
-                'label': label[2:],
-                'start': i
-            }
-        elif label.startswith('I-') and current_entity:
-            current_entity['text'] += ' ' + token
-        elif label == 'O':
-            if current_entity:
-                entities.append(current_entity)
-                current_entity = None
-
-    if current_entity:
-        entities.append(current_entity)
-
-    return entities
 
 
 @celery.task
@@ -131,16 +52,12 @@ def parse_resume(s3_url:str, user_id:str):
 
         # PDF bytes
         file_bytes = response["Body"].read()
-        text = bytes_to_text(file_bytes, filename)
+        text: dict = parse_resume_raw(filename=filename, file_bytes=file_bytes)
         print("RESUME TEXT IS: \n")
         print(text)
+        
 
-        # Run NER on the actual resume text
-        entities = extract_entities(text)
-        print("Extracted Entities:")
-        for entity in entities:
-            print(f"- {entity['label']}: {entity['text']}")
-
+        
         print(f"Downloaded {len(file_bytes)} bytes from S3")
 
 
@@ -149,10 +66,3 @@ def parse_resume(s3_url:str, user_id:str):
 
     except Exception as e:
         print(f"General error: {e}")
-
-
-
-# celery.conf.task_routes = {
-#     "worker.celery_app.parse_resume": {"queue": "resume_queue"},
-# }
-

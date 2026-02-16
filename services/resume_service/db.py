@@ -37,8 +37,8 @@ def init_db():
     """, (None,))
     print("resumes table created!")
     # pgvector extension
-    # db_execute("""CREATE EXTENSION IF NOT EXISTS vector;""", (None,))
-    # print("pg vector extension created")
+    db_execute("""CREATE EXTENSION IF NOT EXISTS vector;""", (None,))
+    print("pg vector extension created")
     # create parsed_resumes tables
     db_execute("""CREATE TABLE IF NOT EXISTS parsed_resumes (
                     id SERIAL PRIMARY KEY,

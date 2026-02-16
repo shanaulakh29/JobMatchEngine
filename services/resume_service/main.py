@@ -72,8 +72,8 @@ async def upload_file(file: UploadFile = File(...), user_id: str = Depends(get_u
     
     
     # TODO: push to redis queue
-    parse_resume.delay(s3_url, user_id)
     # TODO: PARSE THE RESUME
+    parse_resume.delay(s3_url, user_id)
     
      
     # successful upload
