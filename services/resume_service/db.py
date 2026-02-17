@@ -44,7 +44,7 @@ def init_db():
                     id SERIAL PRIMARY KEY,
                     resume_id INT REFERENCES resumes(id),
                     skills TEXT[],
-                    experience JSONB,
+                    experience TEXT[],
                     education TEXT[],
                     raw_text VARCHAR(500),
                     embedding VECTOR(384),

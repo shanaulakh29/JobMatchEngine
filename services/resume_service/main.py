@@ -1,12 +1,12 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, UploadFile, File, HTTPException, status, Depends
 from fastapi.responses import JSONResponse
-from resume_service.db import init_db,  db_execute
+from resume_service.db import init_db,  db_execute, db_query
 from resume_service.bucket import upload_s3, create_presigned_url
 import logging
-from resume_service.dependencies import get_user_id, get_resume_info, get_resume_status
+from resume_service.dependencies import get_user_id, get_resume_info, get_resume_status, parse_resume
 from datetime import datetime, timezone
-from worker.celery_app import parse_resume
+
 # build tables on startup
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -69,16 +69,17 @@ async def upload_file(file: UploadFile = File(...), user_id: str = Depends(get_u
     
     # upload to the resumes table with userID connected
     db_execute("INSERT INTO resumes (user_id, s3_key, uploaded_at) VALUES(%s, %s, %s)", params)
+    # store resume_id
+    resume_id = db_query("SELECT id FROM resumes WHERE user_id = %s", (user_id,))[0]
     
     
-    # TODO: push to redis queue
-    # TODO: PARSE THE RESUME
-    parse_resume.delay(s3_url, user_id)
-    
+
+    # parse the resume and push to resume_queue
+    parse_resume(s3_url, user_id, resume_id)
      
     # successful upload
     return JSONResponse(
-        content="Resume uploaded successfully. Please wait while it is being parsed",
+        content="Resume uploaded and parsed successfully.",
         status_code=201
     )
     
