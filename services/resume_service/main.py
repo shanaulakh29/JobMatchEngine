@@ -70,8 +70,9 @@ async def upload_file(file: UploadFile = File(...), user_id: str = Depends(get_u
     # upload to the resumes table with userID connected
     db_execute("INSERT INTO resumes (user_id, s3_key, uploaded_at) VALUES(%s, %s, %s)", params)
     # store resume_id
-    resume_id = db_query("SELECT id FROM resumes WHERE user_id = %s", (user_id,))[0]
-    
+    res = db_query("SELECT id FROM resumes WHERE user_id = %s AND s3_key = %s", (user_id,s3_url))
+    resume_id = res[0][0]
+    print("Resume id: ", resume_id)
     
 
     # parse the resume and push to resume_queue
