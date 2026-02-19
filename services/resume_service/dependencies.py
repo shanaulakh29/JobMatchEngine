@@ -3,7 +3,6 @@ from resume_service.schemas import Resume
 from resume_service.db import db_query
 from typing import Optional
 from sentence_transformers import SentenceTransformer
-import os
 from datetime import datetime, timezone
 from resume_service.db import db_execute
 from worker.model_parser import parse_resume_raw
@@ -16,7 +15,7 @@ from urllib.parse import urlparse
 
 
 load_dotenv()
-model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
+
 
 def get_user_id(user_id: str = Header(..., alias="user_id")) -> str:
     """Extracts the user_ID from header. Used as a dependency"""
@@ -44,11 +43,12 @@ def get_resume_status(resume_id: str, user_id: str) -> Optional[str]:
     if not rows:
         raise HTTPException(status_code=401, detail="Resume not found")
     # unpack
-    status = rows[0]
+    status = rows[0][0]
     return status
 
 def generate_embeddings(text: str):
     """Generates embeddings for a given string"""
+    model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
     return model.encode(text).tolist()
  
 
