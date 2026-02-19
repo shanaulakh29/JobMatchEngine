@@ -1,7 +1,7 @@
 import os
 from psycopg2.pool import SimpleConnectionPool
 from dotenv import load_dotenv
-
+from pgvector.psycopg2 import register_vector
 load_dotenv()
 
 DB_HOST = os.environ['POSTGRES_HOST']
@@ -43,9 +43,9 @@ def init_db():
     db_execute("""CREATE TABLE IF NOT EXISTS parsed_resumes (
                     id SERIAL PRIMARY KEY,
                     resume_id INT REFERENCES resumes(id),
-                    skills TEXT[],
-                    experience TEXT[],
-                    education TEXT[],
+                    skills TEXT,
+                    experience TEXT,
+                    education TEXT,
                     raw_text VARCHAR(500),
                     embedding VECTOR(384),
                     parsed_at TIMESTAMP NOT NULL
@@ -57,6 +57,8 @@ def db_query(query: str, params: tuple=()):
     """Runs SELECT queries only and returns results"""
     conn = pool.getconn()
     try:
+        # register vector embs
+        register_vector(conn)
         cur = conn.cursor()
         cur.execute(query, params)
         rows = cur.fetchall()
@@ -71,6 +73,8 @@ def db_execute(query: str, params: tuple=()):
     """Runs INSERT/UPDATE/DELETE queries and commits"""
     conn = pool.getconn()
     try:
+        # register vector embs
+        register_vector(conn)
         cur = conn.cursor()
         cur.execute(query, params)
         conn.commit()

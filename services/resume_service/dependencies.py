@@ -12,6 +12,9 @@ from botocore.exceptions import ClientError
 import boto3
 from urllib.parse import urlparse
 
+
+
+
 load_dotenv()
 model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
 
