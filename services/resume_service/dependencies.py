@@ -5,7 +5,7 @@ from typing import Optional
 from sentence_transformers import SentenceTransformer
 from datetime import datetime, timezone
 from resume_service.db import db_execute
-from worker.model_parser import parse_resume_raw
+from services.resume_service.model_parser import parse_resume_raw
 from dotenv import load_dotenv
 from botocore.exceptions import ClientError
 import boto3
@@ -53,7 +53,7 @@ def generate_embeddings(text: str):
  
 
 
-def parse_resume(s3_url:str, user_id:str, resume_id: int) -> dict:
+def parse_resume(s3_url:str, user_id:str, resume_id: int) -> tuple: 
     """Parses a resume from S3 and generates embeddings"""
     print(f"Started parsing resume for user:{user_id}")
     s3_client = boto3.client('s3', region_name='ap-south-1')
@@ -104,7 +104,9 @@ def parse_resume(s3_url:str, user_id:str, resume_id: int) -> dict:
         # insert into the database
         db_execute("INSERT INTO parsed_resumes (resume_id, skills, experience, education, embedding, parsed_at) VALUES (%s, %s, %s, %s, %s, %s)", cleaned)
         print(cleaned)
-    
+
+        # return the tuple
+        return cleaned
 
     except ClientError as e:
         print(f"AWS error: {e}")

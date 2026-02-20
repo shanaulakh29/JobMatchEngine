@@ -1,4 +1,4 @@
-from worker.model_dependencies import bytes_to_text, clean_text
+from services.resume_service.model_dependencies import bytes_to_text, clean_text
 import re
 
 
